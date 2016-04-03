@@ -1,0 +1,44 @@
+% -*- root: ../main.tex -*-
+\subsection{Sensitivitäten}
+Das Ziel ist es später das SQP - Verfahren zu lösen. Dazu benötigt man die Jacobimatrix und Hessematrix der Zustände $h(t_{x_k}, x_{k-1}, u_{k-1})$, welche durch das Lösen der ODE berechnet werden. Aber anstatt zuerst die Differentialgleichung zu lösen und dann die Lösung nach $x$ bzw. $u$ abzuleiten, leitet man zuerst die ODE nach $x$ bzw. $u$ ab und löst erst dann die Differentialgleichung. Damit das nachfolgende Vorgehen überhaupt erlaubt ist, bzw. alle Ausdrücke wohldefiniert sind, muss $x(t)$ in allen Variablen stetig differenzierbar sein, damit man den Satz von Schwarz anwenden kann.\\ 
+
+\subsubsection{Jacobimatrix}\label{subsub:Jacobi}
+
+Sei $x \in \mathbb{R}^{k \cdot 13}$, $u \in \mathbb{R}^{k \cdot 4}$, $f(x, u) \in \mathbb{R}^{k \cdot 13}$ wie in \ref{gl:ODE} gewählt und in $k$ Zeitpunkten diskretisiert, so ist $f \in C^{\infty}$. Dann gibt es für die ODE $\dot {x} = f(x, u)$, wegen ihrer Lipschitzstetigkeit, nach Poincare eine eindeutige Lösung $h(x, u) \in \mathbb{R}^{k \cdot 13}$ mit 
+\begin{align*}
+ 	\dot h(x, u) = f(h(x, u), u)
+\end{align*}
+Man betrachte nun die Differenzialgleichung zum Zeitpunkt $k$, es folgt für die Differenzierung nach der $x_i$ Komponente
+\begin{align*}
+	\frac{d}{dx^k_i} \frac{d}{dt^k} h(x^k, u^k) = \frac{d}{dx^k_i} f(h(x^k, u^k), u^k) \\
+\end{align*}
+Da $f \in C^{\infty}$ folgt nun, dass die Ableitungen vertauscht werden können.
+\begin{align*}
+\frac{d}{dt^k} \frac{d}{dx^k_i} h(x^k, u^k) = \frac{d}{dx^k_i} f(h(x^k, u^k), u^k)  &= \frac{d}{dx^k} \left[f(h(x^k, u^k), u^k) \right] \cdot \frac{d}{dx^k_i}h(x^k, u^k) \\
+&+ \frac{d}{du^k}\left[ f(h(x^k, u^k), u^k)  \right] \cdot \underbrace{\frac{du^k}{dx^k_i}}_{=0}
+\end{align*}
+mit $A^k := \frac{d}{dx^k_i} h(x^k, u^k) \in \mathbb{R}^{13 \times 13}, i = 1..13$ folgt die ODE  
+\begin{align*}
+\frac{d}{dt^k} A^k &= \underbrace{\frac{d}{dx^k} \left[f(h(x^k, u^k), u^k) \right]}_{\in \mathbb{R}^{13 \times 13}} \cdot A^k := a(x^k, u^k, A^k)
+\end{align*}
+mit der Anfangsbedingung $A_0^k = I \in \mathbb{R}^{13 \times 13} $ \\\\
+Analog folgt für die Differenzierung nach der $u_i$ Komponente
+\begin{align*}
+\frac{d}{dt^k} \frac{d}{du^k_i} h(x^k, u^k) &= \frac{d}{dx^k} \left[f(h(x^k, u^k), u^k) \right] \cdot \frac{d}{du^k_i}h(x^k, u^k) \\
+&+ \frac{d}{du^k}\left[ f(h(x^k, u^k), u^k)  \right] \cdot \frac{du^k}{du^k_i}
+\end{align*}
+mit $B^k := \frac{d}{du^k_i} h(x^k, u^k) \in \mathbb{R}^{13 \times 4}, i = 1..4$ folgt die ODE 
+\begin{align*}
+\frac{d}{dt^k} B^k &= \underbrace{\frac{d}{dx^k} \left[f(h(x^k, u^k), u^k) \right]}_{\in \mathbb{R}^{13 \times 13}} \cdot B^k \\
+&+ \underbrace{
+	\frac{d}{du^k}
+		\left[ f(h(x^k, u^k), u^k)  \right]
+		   }_
+{\in \mathbb{R}^{13 \times 4}}
+		   \cdot \underbrace{I^k}_{\in \mathbb{R}^{4 \times 4}} :=b(x^k, u^k, B^k)
+\end{align*}
+mit folgender Anfangsbedingung $B_0^k = 0 \in \mathbb{R}^{13 \times 4}$. \\
+\\
+Sei $\Phi_1^k, \Phi_2^k$ Lösungen für $\frac{d}{dt^k} \Phi_1^k = a(x^k, u^k, \Phi_1^k)$ und $\frac{d}{dt^k} \Phi_2^k = b(x^k, u^k, \Phi_2^k)$ Für die Jacobimatrix $J^k \in \mathbb{R}^{13 \times 17}$ von $h(t_{x_k}, x_{k-1}, u_{k-1})$ folgt aus den Lösungen $\Phi_1^k, \Phi_2^k$; $J^k =[\Phi_1^k, \Phi_2^k]$
+\subsubsection{Hessematrix}
+Im Verlauf des Projektes hat sich herausgestellt, dass der Aufwand für die Berechnung der Hessematrix mit dem Butzen kollidiert. Anstatt diese zu berechnen wird sie durch eine Diagonalmatrix approximiert.

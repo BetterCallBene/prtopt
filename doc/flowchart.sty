@@ -1,0 +1,15 @@
+\NeedsTeXFormat{LaTeX2e}[1996/06/01]
+\ProvidesPackage{flowchart}[2016/03/30 v1.0 (BB)]
+
+\usepackage[x11names]{xcolor}
+\usepackage{tikz}
+
+\usetikzlibrary{calc, shapes,arrows,chains, automata, positioning, trees}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\colorlet{lcfree}{Green3}
+\colorlet{lcnorm}{Blue3}
+\colorlet{lccong}{Red3}

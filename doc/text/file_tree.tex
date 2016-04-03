@@ -1,0 +1,101 @@
+% -*- root: ../main.tex -*-
+\tikzstyle{every node}=[draw=black,thick,anchor=west]
+\tikzstyle{selected}=[draw=red,fill=red!30]
+\tikzstyle{optional}=[dashed,fill=gray!50]
+\begin{tikzpicture}[%
+  grow via three points={one child at (0.5,-0.7) and
+  two children at (0.5,-0.7) and (0.5,-1.4)},
+  edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+  \node {Project}
+    child { node {Data}}
+    child { node {doc}}		
+    child { node {include}
+      child { node {constraints.h}}
+      child { node {cost.h}}
+      child { node {cs.h}}
+      child { node {cs\_types.h}}
+      child { node {cvode\_impl.h}}
+      child { node {dyn.h}}
+      child { node {lagrange.h}}
+      child { node {quad\_types.h}}
+      child { node {realtimesolver.h}}
+      child { node {riccati.h}}
+      child { node {rtopt\_gen.h}}
+      child { node {solver.h}}
+      child { node {sys\_base.h}}
+      child { node {sys\_config.h}}
+      child { node {sys\_types.h}}
+      child { node {util.h}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child { node {MAPLE}
+      child { node {GenerateFunctionJacobi.mw}}
+      child { node {GenerateFunctionJacobi.mpl}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child { node {PYTHON}
+      child { node {GenerateDyn.py}}
+      child { node {GenerateScript.py}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child { node {src}
+      child { node {alloc\_mem.c}}
+      child { node {calc\_time.c}}
+      child { node {config.c}}
+      child { node {cost.c}}
+      child { node {cs\_ext.c}}
+      child { node {diff.c}}
+      child { node {dyn.c}}
+      child { node {gen.c}}
+      child { node {lagrange.c}}
+      child { node {multipleshooting.c}}
+      child { node {nrm.c}}
+      child { node {output.c}}
+      child { node {realtimesolver.c}}
+      child { node {riccati.c}}
+      child { node {rtopt\_gen.c}}
+      child { node {solver.c}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child { node {template}
+      child { node {rtopt\_gen.template}}
+    }
+    child [missing] {}
+    child { node {dyn.ini}}
+    child { node {init.sh}}
+    child { node {Makefile}}
+    child { node {rtopt.ini}}
+    child { node {setup\_dyn.sh}};
+\end{tikzpicture}

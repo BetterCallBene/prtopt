@@ -1,0 +1,64 @@
+\NeedsTeXFormat{LaTeX2e}[1996/06/01]
+\ProvidesPackage{main}[2015/11/14 v1.0 (BB)]
+%Randeinstellungen
+\usepackage{geometry} 
+
+
+% page layout definition with standard LaTeX commands (def. margin 1 in)
+\setlength{\topmargin}     {-21.0mm} %{-13.4mm} % 25.4mm default
+\setlength{\headheight}    {23mm}
+\setlength{\headsep}       {5mm}
+\setlength{\evensidemargin}{-5.9mm}% 25mm
+\setlength{\oddsidemargin} {-5.9mm}%
+\setlength{\textwidth}     {170mm} %
+\setlength{\textheight}    {233mm} %
+\parindent 0pt
+
+%The two packages address different problems.
+%inputenc allows the user to input accented characters directly from the keyboard;
+\usepackage[utf8]{inputenc}
+%fontenc is oriented to output, that is, what fonts to use for printing characters.
+\usepackage[T1]{fontenc}
+%Silbentrennung
+\usepackage[ngerman]{babel}
+%Grafikpackage
+\usepackage{graphicx}
+%Eps to pdf
+\usepackage{epstopdf}
+% use helvetica
+\usepackage{helvet}         
+
+%Noch genauer zu erkunden.
+\usepackage{amsmath}
+\usepackage{amsfonts}
+%Erweiterung von amsmath, amsfonts
+\usepackage{mathtools}
+%Nur refenzierte Zeilennummer der Matheumgebung zeigen
+\mathtoolsset{showonlyrefs} 
+%Ordner der Grafiken
+\graphicspath{{./image/}}
+% Hinzufuegen von ref
+\usepackage{hyperref}
+
+%Grafiken festpositioneren
+\usepackage{float}
+%Anpassbare Enumerates/Itemizes
+\usepackage{enumitem} 
+%Einheiten 
+\usepackage{siunitx}
+%Einheitensetup
+\sisetup{
+  locale = DE,
+  per-mode = symbol
+}
+
+%mathscr
+\usepackage{mathrsfs}
+
+
+\newtheorem{satz}{Satz}
+\newtheorem{defi}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{kor}{Korollar}
+\newtheorem{bem}{Bemerkung}
+\newcommand{\R}{\mathbb{R}}

@@ -1,0 +1,12 @@
+#ifndef _COST_H
+#define _COST_H
+#include <sys_types.h>
+#include <cs_types.h>
+realtype costAll(rqci t, realtype* y);
+realtype cost(rqci t, realtype* y);
+realtype* costD(rqci t, realtype* y);
+cs* costDD(rqci t, realtype* y);
+cs* costDDQ(rqci t, realtype* y);
+cs* costDDR(rqci t, realtype* y);
+
+#endif

@@ -1,0 +1,125 @@
+% -*- root: ../main.tex -*-
+\pagestyle{empty}
+\begin{tikzpicture}[%
+    >=triangle 60,              % Nice arrows; your taste may be different
+    start chain=going below,    % General flow is top-to-bottom
+    node distance=6mm and 60mm, % Global setup of box spacing
+    every join/.style={norm},   % Default linetype for connecting boxes
+    ]
+% ------------------------------------------------- 
+% A few box styles 
+% <on chain> *and* <on grid> reduce the need for manual relative
+% positioning of nodes
+\tikzset{
+  base/.style={draw, on chain, on grid, align=center, minimum height=4ex},
+  placeholder/.style={base, white, on chain, text width=12em},
+  proc/.style={base, rectangle, text width=12em},
+  riccati/.style={proc, fill=blue!10},
+  test/.style={base, diamond, aspect=2, text width=7em},
+  term/.style={proc, rounded corners},
+  % coord node style is used for placing corners of connecting lines
+  coord/.style={coordinate, on chain, on grid, node distance=6mm and 25mm},
+  % nmark node style is used for coordinate debugging marks
+  nmark/.style={draw, cyan, circle, font={\sffamily\bfseries}},
+  % -------------------------------------------------
+  % Connector line styles for different parts of the diagram
+  norm/.style={->, draw, lcnorm},
+  free/.style={->, draw, lcfree},
+  cong/.style={->, draw, lccong},
+  dashedline/.style={->, draw, black!50, dashed},
+  it/.style={font={\small\itshape}}
+}
+
+\node [term] (t{prepare}) {Wähle Startschätzung $y^{0} \in \mathbb{R}^{N\cdot(n_{\lambda}+n_{s}+n_{q})+ (n_{\lambda_N}+n_{s_N})}$};
+\node [term, join] (t{begin}) {fminrt: Hauptroutine};
+% fminrt
+\node [test, join] (t1) {Im Zeitintervall? $t$};
+\node [test] (t2) {Im ersten Zeitintervall?};
+\node [proc, join] (p1){Prüfe, ob Ungleichungsnebenbedingungen aktiv};
+\node [proc, join, fill=red!50] {Löse $N-1$ Anfangswertprobleme des Quadrocopter Modells};
+\node [riccati, join] (riccati_node) {Kalkulieren der $\Delta$'s mit Riccati};
+\node [proc, join] {Führe Newton-Schritt durch und Initialisiere die nächste Iteration};
+\node [proc, join] {Schätze die Werte des letzten Zeitschrittes durch duplizieren der Werte des vorherigen Schrittes};
+\node [proc, join]  {Speichere die geschätzten Werte};
+\node [proc, join] (p4) {Erhöhe den Zeitstempel um eins};
+
+
+% Bedingungen
+\node [term, right=of t1] (t{ende}) {Programmende};
+\node [proc, right=of t2] (p2) {Berechne Kosten};
+\node [proc, join] (p3) {Berechne Gleichheitsnebenbedingungen};
+\node [coord, left=of p4]  (c4)  {};
+\node [coord, left=of t1]  (c1)  {};
+\node [coord, left=of t{begin}] (c2){};
+
+
+\path (t1.south) to node [near start, xshift=1em] {Ja} (t2);
+   \draw [->,lcnorm] (t1.south) -- (t2);
+\path (t1.east) to node [near start, yshift=1em] {Nein} (t{ende});
+   \draw [->,lcnorm] (t1.east) -- (t{ende});
+\path (t2.south) to node [near start, xshift=1em] {Ja} (p1);
+   \draw [->,lcnorm] (t2.south) -- (p1);
+\path (t2.east) to node [near start, yshift=1em] {Nein} (p2);
+   \draw [->,lcnorm] (t2.east) -- (p2);
+\draw let \p{coor} = ($ (p3.south) - (p1.east) $)
+        in 
+          [->,lcnorm] (p3.south) -- ++(0, -\y{coor}) -- (p1.east);
+\draw [->,lcnorm] (p4.west) -- ([xshift=-1.25em]c4) -- ([xshift=-1.25em]c1) -- ([xshift=-1.25em]c2) -- (t{begin}.west);
+
+% calculateSolution: Kalkulieren der Deltas mit Riccati
+\node [placeholder, right=of t{begin}] (ph1) {};
+\node [term, right=of ph1](t{begin1}) {Kalkulieren der $\Delta$'s mit Riccati};
+\node [proc, join] {Setze Horizontindex auf $N$};
+\node [test, join] (p{horizon}) {Ist Horizontindex $i \ge 1$?};
+\node [proc] (p{Riccati}) {Löse ersten Riccarti - Schritt};
+\node [proc, join] {Berechne aktuelle Steuerungssignale und führe sie aus};
+\node [proc, join] (p{savRiccati}){Speichere das Ergebnis des ersten Riccati - Schritts};
+%\node [proc, join] {Löse die restlichen Riccati - Schritte}
+\node [test, join] (p{horizon2}) {Ist Horizontindex $\ge 2$?};
+\node [term] (t{Back}) {Zurück};
+
+\node [placeholder, right=of t{begin1}](phi2){};
+\node [proc, right=of p{horizon}] (p{LagrangeAbl}) {Berechne $\nabla_{y_i} L^{i}(y)$};
+\node [proc, join] {Berechne $J^{i}(y_i)$};
+\node [proc, join] {Führe Riccati - Schritt aus};
+\node [proc, join] (p{RiccatiStep}) {Verringere den Horizontindex um eins};
+
+\node [proc, right=of p{horizon2}] (p{Riccatii}) {Löse für den Horizontindex den Riccati - Schritt};
+\node [proc, join] (p{Riccatii1}) {Erhöhe den Horizontindex um eins};
+
+\node [coord, right=of phi2] (c{begin1}) {};
+\node [coord, right=of p{RiccatiStep}] (c{RiccatiStep}){};
+\node [coord, right=of p{savRiccati}] (c{savRiccati}) {};
+\node [coord, right=of p{Riccatii1}] (c{Riccatii1}) {};
+
+\path (p{horizon}.south) to node [near start, xshift=1em] {Nein} (p{Riccati});
+    \draw [->,lcnorm] (p{horizon}.south) -- (p{Riccati});
+
+\path (p{horizon}.east) to node [near start, yshift=1em] {Ja} (p{LagrangeAbl});
+    \draw [->,lcnorm] (p{horizon}.east) -- (p{LagrangeAbl});
+
+\path (p{horizon2}.east) to node [near start, yshift=1em] {Ja} (p{Riccatii});
+    \draw [->,lcnorm] (p{horizon2}.east) -- (p{Riccatii});
+
+%\draw [->,lcnorm] (p{Riccatii}.north) -- (c{savRiccati}) -- (p{savRiccati}.east);
+\draw let \p{absR} = ($ (p{savRiccati}.east) - (p{Riccatii1}.east) $)
+        in 
+          [->,lcnorm] (p{Riccatii1}.east) -- ([xshift=1.25em]c{Riccatii1}) -- ++(0, \y{absR}) -- (p{savRiccati}.east);
+
+\draw let \p{absRiccati} = ($ ([xshift=-1em]t{begin1}.west) - (riccati_node.east)$)
+        in
+          [dashedline, <-] ([xshift=0.75em]riccati_node.east) -- ++(\x{absRiccati}-0.75em, 0);
+
+\draw[->, lcnorm] (p{RiccatiStep}.east) -- ([xshift=1.25em]c{RiccatiStep}) -- ([xshift=1.25em]c{begin1}) -- (t{begin1}); 
+\path (p{horizon2}.south) to node [near start, xshift=1em] {Nein} (t{Back});
+    \draw [->, lcnorm] (p{horizon2}.south) -- (t{Back}); +
+
+\path[rounded corners, draw=black!50, dashed]
+            ([xshift=-0.75em, yshift=0.75em]riccati_node.north west) rectangle ([xshift=0.75em, yshift=-0.75em]riccati_node.south east);
+
+\begin{pgfonlayer}{background}
+\path[fill=blue!10,rounded corners, draw=black!50, dashed]
+            ([xshift=-1em, yshift=1em]t{begin1}.north west) rectangle ([xshift=1.75em, yshift=-2em]p{Riccatii1}.south east);
+\end{pgfonlayer}
+\end{tikzpicture}
+% ===============

@@ -1,0 +1,141 @@
+#include <rtopt_gen.h>
+#include <cs.h>
+#include <math.h> // <= fuer pow sonst gibt es falsche Ergebnisse
+
+rqci gen_func(realtype* y,
+		  QuadConfig* quad,
+		  realtype *ydotOut
+)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+
+	realtype g = quad->g;
+	realtype m = quad->m;
+	realtype kT = quad->kT;
+	realtype kQ = quad->kQ;
+	realtype d = quad->d;
+	realtype IM = quad->IM;
+	realtype Iges[3] = {quad->Iges[0], quad->Iges[1], quad->Iges[2]};
+	realtype u[4] = {quad->u[0], quad->u[1], quad->u[2], quad->u[3]};
+
+	${0}$
+
+	return (1);
+}
+rqci gen_jac(realtype* y,
+		 QuadConfig* quad,
+		 MatrixType pdOut
+)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+
+	realtype g = quad->g;
+	realtype m = quad->m;
+	realtype kT = quad->kT;
+	realtype kQ = quad->kQ;
+	realtype d = quad->d;
+	realtype IM = quad->IM;
+	realtype Iges[3] = {quad->Iges[0], quad->Iges[1], quad->Iges[2]};
+	realtype u[4] = {quad->u[0], quad->u[1], quad->u[2], quad->u[3]};
+
+	SetToZero(pdOut);
+
+	${1}$
+	return (1);
+}
+
+realtype gen_cost(realtype* y, realtype* campos)
+{
+	realtype cost;
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+	realtype* u = y + INDU;
+
+	realtype alpha = ALPHA;
+	realtype beta = BETA;
+	realtype Gamma = GAMMA;
+	realtype kappa = KAPPA;
+
+	${2}$
+
+	return cost;
+}
+
+rqci gen_costD(realtype* y, realtype* campos, realtype* costD)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+	realtype* u = y + INDU;
+
+	realtype alpha = ALPHA;
+	realtype beta = BETA;
+	realtype Gamma = GAMMA;
+	realtype kappa = KAPPA;
+
+	${3}$
+
+	return (1);
+}
+
+rqci gen_costDD(realtype* y, cs* costDD)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+	realtype* u = y + INDU;
+
+	realtype alpha = ALPHA;
+	realtype beta = BETA;
+	realtype Gamma = GAMMA;
+	realtype kappa = KAPPA;
+
+	${4}$
+
+	return (1);
+}
+
+rqci gen_costDDQ(realtype* y, cs* costDDQ)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+	realtype* u = y + INDU;
+
+	realtype alpha = ALPHA;
+	realtype beta = BETA;
+	realtype Gamma = GAMMA;
+	realtype kappa = KAPPA;
+
+	${5}$
+
+	return (1);
+}
+rqci gen_costDDR(realtype* y, cs* costDDR)
+{
+	realtype* r = y + INDR;
+	realtype* q = y + INDQ;
+	realtype* v = y + INDV;
+	realtype* omega = y + INDW;
+	realtype* u = y + INDU;
+
+	realtype alpha = ALPHA;
+	realtype beta = BETA;
+	realtype Gamma = GAMMA;
+	realtype kappa = KAPPA;
+
+	${6}$
+
+	return (1);
+}

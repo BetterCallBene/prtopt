@@ -1,0 +1,156 @@
+% -*- root: ../main.tex -*-
+\subsection{Diskretisierung}
+Zu Beginn des Fluges ist der benötige Zeitraum $\Delta t$, aufgrund von der Unsicherheiten (Wind, Änderung der Flugbahn, etc.), ungekannt. Deshalb wird ein prediction horizon (Vorhersagehorizont) eingeführt. Dieser umspannt einen fixen Zeitrahmen und ist in $N$ äquidistante Punkte unterteilt. In der aktuellen Konfiguration beträgt der Abstand der einzelnen Gitterpunkte eine Sekunde. Die Zeitspanne des Horizonts darf nicht zur kurz sein, da die Berechnungen besonders bei plötzlichem Kurswechsel und starken äußeren Einflüssen zu ungenau werden. Bei zu großem Horizont benötigen die Berechnungen zu viel Zeit, so dass die Updaterate der Steuerungssignale nicht eingehalten werden kann. 
+\subsection{Multiple shooting}
+In den $N - 1$ Intervallen werden $N - 1$ Anfangswertprobleme gelöst mit:
+\begin{align}
+	\dot{s} = f(s, u) \hspace{1em} s(t_{k-1}) = s_{k-1}
+\end{align}
+Dabei wird der Anfangswert eines jeden Intervalls jedoch nicht fest vorgegeben, sondern als eine Variable behandelt. Da die Lösung \(h\) der Differentialgleichung auch von der Steuerung \(u\) in dem jeweiligen Intervall abhängig ist, kann man die Lösung jedes Anfangswertproblems als eine Funktion \(h=h(t,s_{i-1},q_{i-1})\) angeben. Hierbei ist also \( s_{i-1}\) der Anfangswert als Parameter, außerdem gehen wir davon aus, dass die Steuerung im Intervall \([t_{i-1},t_i]\) konstant gleich \(q(t_{i-1})=q_{i-1}\) ist.\\
+Damit \(x\) eine stetige Funktion ist, soll der Anfangswert eines jeden Intervalls mit dem dem Endwert des vorigen Intervalls übereinstimmen. Dies wird als Nebenbedingung folgendermaßen in das bereits bestehenden Optimierungsproblem eingefügt:
+\begin{align}
+	h(t_{x_i},s_{i-1},q_{i-1}) - s_{i} = 0
+	\label{equ_multiple_shooting_Nebenbedingung}
+\end{align}
+Diese Methode wird in der Literatur \cite{bulirsch2005} als multiple shooting method oder auch Mehrfachschießverfahren bezeichnet. Dort wird die Gleichung \ref{equ_multiple_shooting_Nebenbedingung} aber nicht mit Hilfe eines SQP - Verfahren gelöst, sondern mit Hilfe eines Newton-Verfahrens mit geschätzten Anfangswerten $x_i$, $i \in [1, N-1]$
+\subsection{SQP - Methode}\label{subsec:SQP}
+Mit der Diskretisierung des Optimierungsproblems und der multiple shooting method als Nebenbedingung führt dies zu dem Problem $P^k(x_k)$
+\begin{align}
+\min_{\begin{array}{c} s_{k},...,s_{N}\\ q_{k},...,q_{N} \end{array}} \sum_{i=k}^{N-1} j_{i}(s_{i},q_{i}) \ \  
+  s.t. \ \left\lbrace \begin{array}{c}
+  x_{k} - s_{k} = 0 \\
+  h_i (s_i ,q_i ) - s_{i+1} = 0 \\
+  g_i (s_i, q_i) \leq 0 \ \ \forall i = k, ... , N-1 \end{array} \right.
+\end{align}
+in jedem Zeitschritt $k$.\\
+\\
+Die zu den Problemen $ P^{k}(x_{k}) $ gehörenden Lagrangegleichungen lauten wie folgt:
+  \begin{align}
+  L^{k}(y) = \sum_{i=k}^{N-1} j_{i}(s_{i},q_{i})
+  + \lambda_{k}^{T}(x_{k} - s_{k})
+  + \sum_{i=k}^{N-1} \lambda_{i+1}^{T} (h_i (s_i ,q_i ) - s_{i+1})
+  + \sum_{i=k}^{N-1} \mu_{i, j}^{T} (g_{i, j} (s_i, q_i))
+  \end{align}
+  mit $j \in \mathscr{A}(s_i, q_i):=\left\{ j: 1 \leq j \leq m; g_{i,j}(s_i, q_i)\geq 0 \right\}$
+
+In dieser Lagrangegleichung wird $ y := (\lambda_{k},s_{k},q_{k},\mu_{k},\lambda_{k+1},s_{k+1},q_{k+1},\mu_{k+1}, ...,\lambda_{N},s_{N}) $ verwendet.
+  Mit KKT-Bedingung
+  \begin{align}
+  \nabla_{y} L^{k}(y)  = 0
+  \end{align}
+  und das exakte Newton-Raphson-Verfahren
+  \begin{align}
+  y_{i+1} = y_i + \Delta y_i
+  \end{align}
+  bei dem jedes $ \Delta y_i $ die Lösung des linearen approximierten Systems
+  \begin{align} 
+  \nabla_{y} L^{k}(y_{i}) + J^{k}(y_{i}) \Delta y_{i} = 0
+  \end{align}
+  ist.\\\\
+  Der von Diehl \cite{Diehl2001} vorgestellte Algorithmus verwendet das oben vorgestellte Newton-Raphson-Verfahren nicht exakt. Die zweite Ableitung $ \nabla^{2}_{y} L^{k} $, die Hesse-Matrix $ \nabla^{2}_{q,s} L^{k} $, wird ersetzt durch eine (symmetrische) Approximierung. Die Approximierung von $ \nabla^{2}_{y} L^{k}(y) $ wird im Folgenden mit $ J^{k}(y) $ bezeichnet. Ebenso wird das Newton-Type-Verfahren approximiert:
+  \begin{align} 
+  \nabla_{y} L^{k}(y_{i}) + J^{k}(y_{i}) \Delta y_{i} = 0
+  \end{align}
+  $ J^{k} $ wird auch als Karush-Kuhn-Tucker Matrix bezeichnet.\\
+  \begin{align}\label{matrix:kkt}
+   \nabla^{2}_{y} L^{k}(y) = 
+  \begin{pmatrix}
+    & -E &   &   &  &  &   &   &  &    \\
+  -E& Q_k & M_k  &  & A_k^{T} &  &  &   &    &       \\
+    & M_k^T & R_k & C_{i, j}^T &   B_k^{T} &  & &  &   &      \\
+    &       & C_{i, j} &         &  &   & &  &    \\
+    & A_k & B_k &  &   & \ddots &   & &  &    \\
+    &  &  &   & \ddots & Q_{N-1} & M_{N-1} &  & A_{N-1}^{T}  &     \\
+    &  &  &  &      & M_{N-1}^T  & R_{N-1} & C_{N, j}^T & B_{N-1}^{T}  &     \\
+    &  &  &  &      &            & C_{N, j}  & &              &    \\
+    &  &  &  &      & A_{N-1} & B_{N-1}  & &    & -E \\
+    &  &  &  & &  & &  & -E & Q_{N}
+  \end{pmatrix} 
+\end{align}
+  \\
+  Mit $ A_i := \dfrac{\partial h_i}{\partial s_i} $, 
+  $ B_i := \dfrac{\partial h_i}{\partial q_i} $,
+  $
+  \begin{pmatrix}
+  Q_i & M_i \\
+  M_i^{T} & R_i
+  \end{pmatrix} := \nabla_{s_i,q_i}^{2}L^{i} $, \
+  $C_{i, j} := \dfrac{\partial g_{i, j}}{\partial q_i}$, $j \in \mathscr{A}$
+  und 
+  $ Q_N := \nabla_{s_N}^{2}L^{i} $ .\\
+  \\
+  In der Approximierung werden $ Q_i $,$ R_i $ und $ M_i $ ersetzt durch $ Q_i^{H}(s_i,q_i,\lambda_{k+1}, \mu_{k+1}) $, $R_i^{H}(s_i,q_i,\lambda_{k+1}, \mu_{k+1}) $ und $ M_i^{H}(s_i,q_i,\lambda_{k+1}, \mu_{k+1}) $.\\
+  Man betrachte  $ y = (\lambda_k, s_k,q_k, \mu_{k}, \tilde{y}) $, dass $\tilde{y}$ direkt zum nächsten Problem $ P_{k+1}(x_{k+1})$ gehört. \\
+  \\
+  Im Paper \cite{Diehl2002} wird erwähnt, dass diese vorteilhafte Form von $\nabla_{y}^{2} L^{k}(y) $, bzw. $ J^{k}(y) $ eine effiziente Lösung der Gleichung $ J^{k}(y)x = b $ durch die Riccati Recursion ermöglicht.\\
+
+  \subsubsection{Approximation}\label{subsub:Approx}
+  Ein wichtiger Spezialfall des Newton-Type Verfahrens ist die Constrained Gauss-Newton Methode, welche sich auf die LEAST SQUARES Form der Funktion
+  \begin{align}
+  \sum_{i = k}^{N-1}\frac{1}{2}\Vert l_i (s_i , q_i )\Vert_{2}^{2} +\frac{1}{2}\Vert e (s_N )\Vert_{2}^{2}
+  \end{align}
+  anwenden lässt. In diesem Fall lässt sich die Approximierung wie folgt berechnen:
+  \begin{align}
+  \begin{pmatrix}
+  Q_i^{H} & M_i^{H} \\
+  (M_i^{H})^{T} & R_i^{H}
+  \end{pmatrix} :=
+  \left( 
+  \dfrac{\partial l_i (s_i,q_i)}{\partial (s_i,q_i)}
+  \right) ^{T}
+  \left( 
+  \dfrac{\partial l_i (s_i,q_i)}{\partial (s_i,q_i)}
+  \right)
+  , \ \ 
+  Q_N :=
+  \left( 
+  \dfrac{\partial e (s_N)}{\partial s_N}
+  \right) ^{T}
+  \left( 
+  \dfrac{\partial e (s_N)}{\partial s_N}
+  \right)
+  \end{align}\\
+  \\
+  In der Praxis hat sich eine einfache Approximation von 
+  $
+  \begin{pmatrix}
+  Q_i^{H} & M_i^{H} \\
+  (M_i^{H})^{T} & R_i^{H}
+  \end{pmatrix} 
+  $
+  durch 
+$\nabla^2 l_i(s_i, q_i) + \alpha \cdot \mathrm{E}$ sehr effizient gegenüber der exakten Berechung sowie deren obrigen Approximation herausgestellt. Zudem folgt, dass die Matrix $M = 0$ ist und die Matrizen $Q$ und $R$ eine Diagonalmatrix darstellen.
+\subsection{Implementierung}
+
+Die Diskretisierung wird in der Initialisierung des Programmes in der Datei ``realtimesolver.c'' mit Funktion ``initialize\_rtsolver'' durchgeführt. Die Funktion wird im Kapitel \ref{sec:ablauf} Programmablauf  näher behandelt. 
+
+\subsubsection{Lagrange}
+Die SQP - Methode und die damit verbundene Lagrangeableitung bzw. Approximation($\nabla_{y_i} L^k(y_i)$, $J^k(y_i)$) werden in den Funktionen ``getLD'' bzw. ``getLDD'' berechnet bzw. wie in \ref{subsub:Approx} approximiert. Jene Funktionen greifen auf die Jacobi und Hessematrix der Kostenfunktion zu. Die zugehörigen Funktionen ``costD'' und ``costDD'' befinden sich in der Datei ``cost.c'' und wurden auch mit Hilfe des MAPLE - ``GenerateFunktionJacobi.mw'' und Pythonskriptes ``GenerateDyn.py'' generiert. Zudem benötigt man für die Berechnung von $\nabla_{y_i} L^k(y_i)$ und $J^k(y_i)$  die Ableitungen der Nebenbedingungen.
+
+\subsubsection{Nebenbedingungen}
+Wie in \ref{subsec:SQP} festgelegt, wird als einzige Gleichheitsnebenbedingung das Mehrfachschießverfahren gesetzt. Das Berechnen der $N-1$ Differentialgleichungen wird im Kapitel Parallelisierung \ref{parallel} erläutert.\\
+\\
+%Für die Ungleichungsnebenbedingungen
+Damit die Steuerungssignale der Motoren nicht in einen unerlaubten Bereich fallen, wurde eine untere $u_{min}$ und eine obere $u_{max}$ Begrenzung eingeführt. Daraus ergeben sich dann acht Ungleichungsnebenbedingungen für die vier Motoren. Da man von einer Lösung nahe eines KKT - Punktes ausgehen kann, sind nur aktive Constraints interessant. Davon können aber wegen $0 \leq u_{min} < u_{max}$, nur vier Ungleichungsnebenbedingungen aktiv sein, was die Sache vereinfacht hat. Die Ungleichungsnebenbedingungen gelten aktiv, wenn gilt:
+\begin{align}
+  g_i(s_i, q_i) = \begin{pmatrix}
+    u_{min} - q_i\\
+    q_i - u_{max}
+  \end{pmatrix}
+  \geq 0
+\end{align}
+Die Implementierung der Ableitung der Ungleichungsnebenbedingungen und die Implementierung der Abfrage der aktiven Menge befinden sich in den Funktionen ``get\_ineq\_con\_at\_t\_act'' und ``checkIfActive''.
+\subsubsection{Test}
+Mit Hilfe der Matlab Funktion ``generateTestData'' des Matlab Projektes ``rtopt'' und der Funktion ``test\_lagrange'' in ``lagrange.c'' wurden die Ergebnisse der Funktionen ``getLD'' und ``getLDD'' validiert.
+
+
+
+
+
+  
+
+
+
+
+
+

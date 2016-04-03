@@ -1,0 +1,160 @@
+% -*- root: ../main.tex -*-
+\begin{tikzpicture}[->,>=stealth']
+
+\tikzset{
+    state/.style={
+           rectangle,
+           rounded corners,
+           draw=black, very thick,
+           minimum height=2em,
+           inner sep=2pt,
+           text centered,
+           },
+}
+ % Position of classDyn 
+ % Use previously defined 'state' as layout (see above)
+ % use tabular for content to get columns/rows
+ % parbox to limit width of the listing
+ \node[state] (realtimesolver) 
+ {\begin{tabular}{l}
+  \textbf{realtimesolver}\\
+  \parbox{4cm}{\begin{itemize}
+  \item vec
+  \item lambda
+  \item activeSet 
+  \item muSet
+  \item ntime
+  \item nhorizon
+  \item data
+  \end{itemize}
+  }
+ \end{tabular}};
+  
+ % STATE QuadConfig
+ \node[state,
+  left of=realtimesolver,
+  node distance=6.5cm,
+  text width=5cm] (QuadConfig) 
+ {%
+ \begin{tabular}{l}
+  \textbf{QuadConfig}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item g Gravitation
+  \item m Masse
+  \item kT
+  \item kQ
+  \item d Abstand
+  \item IM
+  \item Iges
+  \item u
+  \item umax
+  \item umin
+\end{itemize}}
+ \end{tabular}
+ };
+
+ \node[state,    	% layout (defined above)
+  text width=4cm, 	% max text width
+  right of=realtimesolver, 	% Position is to the right of classDyn
+  node distance=6.5cm, 	% distance to classDyn
+  anchor=center] (riccati) 	% posistion relative to the center of the 'box'
+ {%
+ \begin{tabular}{l} 	% content
+  \textbf{riccati}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item nhorizon
+  \item nbytesDeltaMu
+\end{itemize}}
+ \end{tabular}
+ };
+\node[state,      % layout (defined above)
+  text width=4cm,   % max text width
+  right of=riccati,  % Position is to the right of classDyn
+  node distance=6.5cm,  % distance to classDyn
+  anchor=center] (riccati_step)  % posistion relative to the center of the 'box'
+ {%
+ \begin{tabular}{l}   % content
+  \textbf{riccati\_step}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item nvar
+  \item naddConstr
+  \item P
+  \item Q
+  \item M
+  \item R
+  \item A
+  \item B
+  \item D
+  \item nabla\_lambda
+  \item nabla\_s\_star
+  \item delta\_s
+  \item delta\_lambda
+  \item delta\_q
+  \item delta\_mu
+\end{itemize}}
+ \end{tabular}
+ };
+
+ \node[state,      % layout (defined above)
+  text width=4cm,   % max text width
+  right of=riccati_step,  % Position is to the right of classDyn
+  node distance=6.5cm,  % distance to classDyn
+  anchor=center] (riccati_step_tmp)  % posistion relative to the center of the 'box'
+ {%
+ \begin{tabular}{l}   % content
+  \textbf{riccati\_step\_tmp}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item z3
+  \item z4
+  \item z5
+\end{itemize}}
+ \end{tabular}
+ };
+\node[state,      % layout (defined above)
+  text width=4cm,   % max text width
+  below of=realtimesolver,  % Position is to the right of classDyn
+  node distance=6.5cm,  % distance to classDyn
+  anchor=center] (rtsolres)  % posistion relative to the center of the 'box'
+ {%
+ \begin{tabular}{l}   % content
+  \textbf{rtsolres}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item s
+  \item q
+  \item lambda
+  \item mu
+\end{itemize}}
+ \end{tabular}
+ };
+\node[state,      % layout (defined above)
+  text width=4cm,   % max text width
+  below of=riccati,  % Position is to the right of classDyn
+  node distance=6.5cm,  % distance to classDyn
+  anchor=center] (multiple_shooting)  % posistion relative to the center of the 'box'
+ {%
+ \begin{tabular}{l}   % content
+  \textbf{multiple\_shooting}\\
+  \parbox{4.8cm}{
+  \begin{itemize}
+  \item F
+  \item A
+  \item B
+\end{itemize}}
+ \end{tabular}
+ };
+
+ % draw the paths and and print some Text below/above the graph
+\path 
+(QuadConfig)     	edge[] node[]{}(realtimesolver)
+(riccati)      edge[] node[]{}(realtimesolver)
+(riccati_step)		 	edge[] node[]{}(riccati)
+(riccati_step_tmp)			edge[] node[]{}(riccati_step)
+(rtsolres)			edge[] node[]{}(realtimesolver)
+;
+
+\end{tikzpicture}

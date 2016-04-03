@@ -1,0 +1,40 @@
+% -*- root: ../main.tex -*-
+\section{Programmablaufplan}\label{sec:ablauf}
+Das Hauptprogramm ``main'' ruft die Funktion ``initialize\_rtsolver'' auf, diese führt eine Diskretisierung in $N$ äquidistante Schritten durch. Zudem allokiert sie den benötigten Speicher und initialisiert den Vektor $y_0$ mit übergebenen Werten. Ein Beispiel für Initialisierung für den Zustandsvektor liefert die Funktion ``getSteadyPoint'' in ``config.c''. Der zurückgegebene Zustandsvektor liefert für einen stationären Flug  eine Lösung des Optimierungsproblems. Nach der Initialisierung werden die Werte in der Struktur ``realtimesolver\_struct'' gespeichert und an die Hauptroutine ``fminrt'' übergeben. Diese führt den Programmablauf wie Abbildung \ref{abl:Flowchart_serial} durch. Nach erfolgreichem Ablauf wird der Speicher in ``free\_rtsolver'' wieder freigeben.
+
+\begin{figure}[H]
+\centering
+\resizebox {0.7\columnwidth} {!} {
+  \input{text/Flowchart_serial.tex}
+  \label{abl:Flowchart_serial}
+}
+\caption{Serieller Programmablaufplan}
+\end{figure}
+
+\subsection{Parallelisierung}\label{parallel}
+\subsubsection{Riccati}
+Bei der Analyse des Riccatialgorithmus stellt man fest, dass sich der Punkt ``Kalkulieren der $\Delta$'s mit Riccati'' in der Abildung \ref{abl:Flowchart_serial}  nur sehr schwer parallelisieren lässt, da die Berechnungen von $P$, $\nabla_{s_{i-1}}^{*}$ und Co rekursiv sind, d.h. es wird zwingend einen Vorgänger bzw. Nachfolger benötigt. Einen Performancegewinn erzielt man, wie bereits erwähnt, mit dem Zwischenspeichern von wiederkehrenden Ergebnissen. Besonders die im Schritt ``Führe Riccati - Schritt aus'' erzielten Ergebnisse der lu - Zerlegung können in den Schritten ``Löse Riccati Schritt'' wiederverwendet werden. Durch die einfache Approximation der Hessematrix durch $J^i(y_i)$ ist der Aufwand zur Lösung des Gleichungssystem $\nabla_{y} L^{k}(y_{i}) + J^{k}(y_{i}) \Delta y_{i} = 0$ gegenüber dem multiple shooting in Schritt ``Paralleles Lösen der $N-1$ Anfangswertprobleme'' in der Abbildung \ref{abl:Flowchart_parallel}  vernachlässigbar.
+\subsection{Multiple Shooting}
+Das Lösen des Anfangswertproblems des Quadrocopter - Modells für den $i$ - ten Schritt im parallelisierten Programmablauf \ref{abl:Flowchart_parallel} wird nicht mehr durch die Schritte ``Berechne $\nabla_{y_i} L^{i}(y)$'' und ``Berechne $J^{i}(y_i)$'' aufgerufen (siehe Abbildung \ref{abl:Flowchart_serial}), sondern in dem Punkt ``Löse $N-1$ Anfangswertprobleme des Quadrocopter Modell'' ausgelagert, um eine Parallelisierung zu erreichen. Die Ergebnisse werden durch den Vektor der Struktur ``multiple\_shooting'' an die Funktionen ``getLD'' und ``getLDD'' übergeben, die für die Berechnung der Ableitung bzw. der Approximation Jacobi - bzw. Hessematrix der Lagrangefunktion zuständig sind.
+\begin{figure}[H]
+\centering
+\resizebox {0.7\columnwidth} {!} {
+  \input{text/Flowchart_parallel.tex}
+  \label{abl:Flowchart_parallel}
+}
+\caption{Paralleler Programmablaufplan}
+\end{figure}
+
+\subsubsection{Implementierung}
+Für die Parallelisierung wurde das Message Passing Interface (MPI) gewählt, dar die Designziele die Bedürfnisse des Projektes erfüllen. Portabilität, Effizenz und Flexibilität. MPI ist kein IEEE oder ISO Standard, aber es ist tatsächlich so, dass dieses Protokoll ein Industriestandard geworden ist. Zudem unterstützen verschiedene MPI Produkte MVAPICH2, OpenMPI, CRAY, und IBM Platform MPI die Schnittstelle CUDA-aware. Dies Schnittstelle bietet eine einfache Kommunikation zwischen CUDA - GPU's und CPU, sodass dieses Projekt von reiner CPU Parallelisierung in einen Mix aus GPU und CPU Parallelisierung umgebaut werden kann. Im Nachfolgenden wird angenommen, dass die Anzahl zu lösender Differentialgleichungen $N-1$ deutlich höher ist als die Anzahl der Prozesse $P$, d.h. $P << N - 1$. Zudem existiert ein Booleanarray ``bwork'' mit $N-1$ Werten. Ist der $i$-te Eintrag wahr, so wurde bzw. wird das $i$ te Differentialgleichungssystem gelöst. Pro Prozess existiert ein temporäres ``itmp\_work'' Array mit $N-1$ ganzzahligen Elementen. Hat ein Prozess eine ODE gelöst fügt es dem ``itmp\_work'' Array in kommender Reihefolge die Ranking-Id hinzu. Dabei beginnen die Ranking-Id's mit $1$. Ist an der $k$ - ten Stelle eine Null, so ist das Array zu Ende.
+Die Parallisierung hat folgenden Ablauf:
+
+
+\begin{figure}[H]
+\centering
+\resizebox {0.7\columnwidth} {!} {
+  \input{text/Flowchart_MPI.tex}
+  \label{abl:Flowchart_mpi}
+}
+\caption{MPI - Implementierung}
+\end{figure}

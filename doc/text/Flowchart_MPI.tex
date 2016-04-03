@@ -1,0 +1,93 @@
+% -*- root: ../main.tex -*-
+\pagestyle{empty}
+\begin{tikzpicture}[%
+    >=triangle 60,              % Nice arrows; your taste may be different
+    start chain=going below,    % General flow is top-to-bottom
+    node distance=6mm and 60mm, % Global setup of box spacing
+    every join/.style={norm},   % Default linetype for connecting boxes
+    ]
+% ------------------------------------------------- 
+% A few box styles 
+% <on chain> *and* <on grid> reduce the need for manual relative
+% positioning of nodes
+\tikzset{
+  base/.style={draw, on chain, on grid, align=center, minimum height=4ex},
+  placeholder/.style={base, white, on chain, text width=12em},
+  proc/.style={base, rectangle, text width=12em},
+  riccati/.style={proc, fill=blue!10},
+  test/.style={base, diamond, aspect=2, text width=7em},
+  term/.style={proc, rounded corners},
+  % coord node style is used for placing corners of connecting lines
+  coord/.style={coordinate, on chain, on grid, node distance=6mm and 25mm},
+  % nmark node style is used for coordinate debugging marks
+  nmark/.style={draw, cyan, circle, font={\sffamily\bfseries}},
+  % -------------------------------------------------
+  % Connector line styles for different parts of the diagram
+  norm/.style={->, draw, lcnorm},
+  free/.style={->, draw, lcfree},
+  cong/.style={->, draw, lccong},
+  dashedline/.style={->, draw, black!50, dashed},
+  it/.style={font={\small\itshape}}
+}
+
+\node [term] {Löse $N-1$ Anfangswertprobleme des Quadrocopter Modells};
+\node [test, join] (test_rank_id) {Prozess Id $=0$?};
+\node [proc, join] (sende) {Sende alle Anfangsbedingungen an alle Prozesse};
+\node [test, join] (bwork) {sum(bwork) $> 0$?};
+\node [proc] (zufall){Wähle zufallsmäßig aus den noch nicht gelösen ODE's aus};
+\node [proc, join] {Setze den Status jener ODE im ``bwork'' Array die ausgewählt wurde};
+\node [proc, join] {Sende aktuelles ``bwork'' Array an alle Prozesse };
+\node [proc, join] {Löse die ODE};
+\node [proc, join] (save) {Speichere die Daten und setze ``itmp\_work''};
+
+\node [coord, right=of sende] (sendeleft) {};
+\node [coord, left=of save] (saveleft){};
+\node [coord, left=of bwork] (bworkleft) {};
+
+\draw [->,lcnorm] (save.west) -- ([xshift=-0.75em]saveleft) -- ([xshift=-0.75em]bworkleft) -- (bwork.west);
+
+\path (test_rank_id.south) to node [near start, xshift=1em] {Ja} (sende);
+   \draw [->,lcnorm] (test_rank_id.south) -- (sende);
+
+\path (bwork.south) to node [near start, xshift=1em] {Ja} (zufall);
+   \draw [->,lcnorm] (bwork.south) -- (zufall);
+
+
+%----%
+\node [proc, right=of test_rank_id] (wait){Warte auf Daten};
+\path (test_rank_id.east) to node [near start, xshift=1em, yshift=1em] {Nein} (wait);
+   \draw [->,lcnorm] (test_rank_id.east) -- (wait);
+
+\draw [->,lcnorm] (wait.south) -- ([xshift=9.15em, yshift=-1em]sendeleft) -- (bwork.north);
+
+
+
+%---%
+\node [test, right=of bwork] (test_rank_id1) {Prozess Id $=0$?};
+\node [proc, join] (reciv0){Empfange Lösungen von anderen Prozessen};
+\node [test, join] (reciv) {Alle Lösungen empfangen?};
+\node [proc] (prepare) {Bereite Daten auf};
+\node [term, join] (ende){Prozedurende};
+
+\node [coord, right =of reciv0] (recivright0) {};
+\node [coord, right =of reciv] (recivright) {};
+\node [coord, right =of ende] (enderight){};
+
+
+\path (reciv.east) to node [near start, xshift=1em, yshift=1em] {Nein} (recivright);
+   \draw [->,lcnorm] (reciv.east) -- ([xshift=1em]recivright) -- ([xshift=1em]recivright0) -- (reciv0);
+
+\path (bwork.east) to node [near start, xshift=1em, yshift=1em] {Nein} (test_rank_id1.west);
+   \draw [->,lcnorm] (bwork.east) -- (test_rank_id1.west);
+
+\path (reciv.south) to node [near start, xshift=1em] {Ja} (prepare.north);
+   \draw [->,lcnorm] (reciv.south) -- (prepare.north);
+
+%---%
+\node [proc, right=of test_rank_id1] (sendsol) {Sende Lösungen und ``itmp\_work''};
+
+\path (test_rank_id1.east) to node [near start, xshift=1em, yshift=1em] {Nein} (sendsol.west);
+   \draw [->,lcnorm] (test_rank_id1.east) -- (sendsol.west);
+\draw [->,lcnorm] (sendsol.south) -- ([xshift=9.15em]enderight.north) -- (ende);
+
+\end{tikzpicture}

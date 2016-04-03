@@ -1,0 +1,54 @@
+\documentclass{scrartcl}
+\usepackage{main}
+\usepackage{flowchart}
+%\section{Konfiguration}
+% http://tex.stackexchange.com/questions/123374/reduce-space-at-the-top-using-maketitle
+\title{\vspace{-2cm}Parallel realtime optimal control of a quadcopter}
+\subtitle{Projektreport: Advanced Topics in High Performance Scientific Computing}
+\author{Benedikt König}
+\begin{document}
+\maketitle
+
+\section{Einleitung}
+\subsection{Motivation}
+Die autonome Steuerung eines Fluggerätes ist durch die starken und schnellen Änderungen der Umgebung - besonders durch die Windeinflüsse - eine schwierige Aufgabe. Daher können die optimalen Steuerungssignale nicht vor dem Start berechnet werden. Die passende Steuerungstrategie muss während des Fluges gefunden werden. Hierzu werden Methoden von real-time Optimierung und Strategien von model predictive control kombiniert, um einen Quadrocopter zu steuern.  
+
+\subsection{Übersicht}
+Für das dynamische System des Quadrocopters wird die optimale Steuerungsstrategie gesucht, um Unsicherheiten in der Umgebung und im Modell, wie zum Beispiel Windeinflüsse, auszugleichen. In diesem Kontext wird zwischen den Steuerungssignalen $u$ und States $x$ unterschieden. Eine Beziehung zwischen beiden wird durch die ODE $\dot{x(t)}=f(x(t), u(t))$ erreicht. Das Ziel ist es, eine Steuerung $u$ zu finden, welche eine gegebene Kostenfunktion $J$, die die ODE und deren Randwertbedingungen als Nebenbedingung besitzt, zu minimieren. D.h.
+\begin{align}
+	\min_{x, u} J(x(t), u(t)) \text{ u.d.N. } \dot{x(t)} = f(x(t), u(t)) \text{ und } x(0) = x_0\text{, } x(1) = x_1
+\end{align}
+
+Es existieren verschiedene Techniken, um dieses unendlich dimensionale Optimierungsproblem zu lösen. Diese indirekten Methoden sind aber nicht realtime fähig. Daher wird in diesem Projekt die direkte Methode benutzt: Dabei wird das unendliche dimensionale Optimierungsproblem durch ein endlich nichtlineares Problem ersetzt, um die Steuerungssignale sowie die Zustände zu approximieren. Für die Approximation wird das sogenannte multiple shooting Verfahren verwendet, welches anschließend mit Hilfe der SQP - Methode gelöst wird. Bei den gegebenen Modell- und Umgebungsparametern erreicht diese Methode eine gute numerische Approximationen für $u$ in der Kürze der Zeit. Der Ansatz dieses Projektes ist angelehnt an die Methoden, welche entwickelt worden sind von Diehl et al. \cite{Diehl2001, Diehl2002}\\
+\\
+Für die Implementierung des Projektes wurden folgende Bereiche berücksichtigt: Modellierung des Quadrocoptermodelles, Implementierung der Diskretierung und der SQP - Methode sowie der Realtime Ansatz.
+
+\subsection{Entwicklung und Entscheidungen}
+Das Projekt ``Parallel realtime optimal control of a quadcopter'' ist aus den Case Studies for Nonlinear Optimization des Sommersemesters 2015 entstanden. Dazu mussten wir in einem Team, bestehend aus Philipp Fröhlich, Simon Kick, Annika Stegie und mir (Benedikt König) einen Quadrocopter mit Hilfe der Ansätze von Diehl et al.\cite{Diehl2001, Diehl2002} in Echtzeit optimieren. Wir entschieden uns für die Entwicklungsumgebung MATLAB, da alle mit jenen vertraut waren und sich besonders das Debuggen als einfach herausgestellt hatte. Nachdem Erfolg des Projektes ``rtopt'' kam der Wunsch auf, dieses weiterzuführen und die Ergebnisse in eine konkurrenzfähige Umgebung zu transformieren. Zunächst wurde von mir versucht das Projekt unter FORTRAN zu übersetzten, dies ist leider aufgrund von Compilierverfügbarkeit (Stand: 31.03.2016 ist PGI CUDA Fortran Compiler der einzige CUDA Compiler für Fortran -> teuer) gescheitert. Für den zweiten Versuch wurde das Projekt nun in ``c'' erstellt. Dafür sprachen unter anderem die hohe Plattformverfügbarkeit, Performance und benutzte OpenSource Projekte. Dies waren unter anderem das OpenSource Projekt ``SuiteSparse'' mit dem Paket ``CSparse'' von Timothy A. Davis \cite{davis2006direct} und das Projekt CVODE von Alan C. Hindmarsh \cite{Hindmarsh1996}. Das Paket CSparse beinhaltet eine Vielzahl von Sparsematrixoperationen, sowie Direktlöser (lu, qr, ..) von Gleichungssystemen mit Sparsematrizen. CVODE hingegen löst Anfangswertprobleme von gewöhnlichen Differentialgleichungen. Im Laufe des Projektes musste besonders das Paket ``CSparse'', welches auf den compressed sparse column(csc) Format basiert, angepasst und erweitert werden. Zudem stellte sich heraus, dass das Schreiben von Testfunktionen in ``C'' eine Herausforderung war und die Kombination aus den MATLAB Projekt ``rtopt'' und ``c''-Projekt eine schnellere Alternative darstellte. Dabei wurden, durch die vorhandenen und korrekt funktionieren MATLAB - Funktionen, Daten generiert und mit den neuen Funktionen des ``c''- Projektes verglichen. 
+\input{text/simpleModel.tex}
+\input{text/Sensitivitaetsgleichungen.tex}
+\input{text/Implementierung_Solving.tex}
+\input{text/Diskretisierung_SQP.tex}
+\input{text/Riccati.tex}
+\input{text/Programmablaufplan.tex}
+\input{text/ausblick.tex}
+\input{text/Anhang.tex}
+\bibliography{library}
+\bibliographystyle{plaindin}
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

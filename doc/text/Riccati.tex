@@ -1,0 +1,255 @@
+% -*- root: ../main.tex -*-
+\section{Riccati - Rekursion}
+In diesem Projekt wird die Gleichung $L^{k}(y_{i}) + J^{k}(y_{i}) \Delta y_{i} = 0$ mit Hilfe der Riccati Rekursion gelöst. Dies ist aufgrund der speziellen Form der Matrix $J^k(y^k)$ (\ref{matrix:kkt}) möglich.
+Um die Übersicht zu wahren erfolgt die Herleitung der Riccati - Rekursion für die Gleichung $J^k(y^k) \delta y^k = - \nabla_{y_k} L^k(y^k)$ ohne Ungleichungsnebenbedingungen und zudem wird die Teilmatrix $M_i$ auf 0 gesetzt, d.h.
+\begin{align}
+    J^{k}(y) = 
+  \begin{pmatrix}
+    & -E &   &    &  &   &   &     \\
+  -E& Q_k & 0   & A_k^{T} &  &     &    &       \\
+    & 0 & R_k  &   B_k^{T} &  &   &   &      \\
+    & A_k & B_k &  &   & \ddots &   &   &    \\
+    &  &  &   & \ddots & Q_{N-1} & 0  & A_{N-1}^{T}  &     \\
+    &  &  &  &      & 0  & R_{N-1} & B_{N-1}^{T}  &     \\
+    &  &  &  &      & A_{N-1} & B_{N-1}  & &    & -E \\
+    &  &  &  & &  & &  & -E & Q_{N}
+  \end{pmatrix}
+  \end{align}
+\\
+Betrachte nun
+  \begin{align*}
+  \begin{pmatrix}
+  -E & Q_{N-1} & 0 & A_{N-1}^{T} &  \\
+     & 0 & R_{N-1} & B_{N-1}^{T} &  \\
+     & A_{N-1} & B_{N-1} &   & -E \\
+     &   &   & -E & Q_N
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} \\
+  \Delta q_{N-1} \\
+  \Delta \lambda_{N} \\
+  \Delta s_N
+  \end{pmatrix} =-
+  \begin{pmatrix}
+  \nabla_{s_{N-1}} L^{k}(y^{k}) \\
+  \nabla_{q_{N-1}} L^{k}(y^{k}) \\
+  \nabla_{\lambda_{N}} L^{k}(y^{k}) \\ 
+  \nabla_{s_{N}} L^{k}(y^{k})
+  \end{pmatrix}
+  \end{align*}
+  Zur einfacheren Schreibweise ist ab jetzt $ \nabla_{s_{N}} := -\nabla_{s_{N}} L^{k}(y^{k}) $
+  \begin{align*}
+  \begin{pmatrix}
+   0  & A_{N-1} & B_{N-1} \\
+   0  & 0  &  0 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} \\
+  \Delta q_{N-1} 
+  \end{pmatrix} 
+  +
+  \begin{pmatrix}
+   0 & -E \\
+   -E  &  Q_N 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N} \\
+  \Delta s_{N} 
+  \end{pmatrix} 
+  = 
+  \begin{pmatrix}
+  \nabla_{\lambda_{N}} \\ 
+  \nabla_{s_{N}} 
+  \end{pmatrix}
+  \end{align*}
+  Für das Verfahren setzt man $ P_N = Q_N $.
+  \begin{align*}
+  \begin{pmatrix}
+  \Delta \lambda_{N} \\
+  \Delta s_{N} 
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+   0 & -E \\
+   -E  &  P_N 
+  \end{pmatrix}^{-1}
+  \left[ 
+  \begin{pmatrix}
+  \nabla_{\lambda_{N}} \\ 
+  \nabla_{s_{N}} 
+  \end{pmatrix}
+  -
+  \begin{pmatrix}
+   0  & A_{N-1} & B_{N-1} \\
+   0  & 0  &  0 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} \\
+  \Delta q_{N-1} 
+  \end{pmatrix} \right] \\
+  =
+  \begin{pmatrix}
+   -P_N & -E \\
+   -E  &   
+  \end{pmatrix}
+  \left[ 
+  \begin{pmatrix}
+  \nabla_{\lambda_{N}} \\ 
+  \nabla_{s_{N}} 
+  \end{pmatrix}
+  -
+  \begin{pmatrix}
+   0  & A_{N-1} & B_{N-1} \\
+   0  & 0  &  0 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} \\
+  \Delta q_{N-1} 
+  \end{pmatrix} \right] 
+  \end{align*}
+  Dann werden $\Delta \lambda_{N-1}$,$\Delta s_{N-1}$ und $\Delta q_{N-1}$ gelöst.
+  \begin{align*}  
+  \begin{pmatrix}
+  -E & Q_{N-1}+A_{N-1}^{T}P_N A_{N-1} & A_{N-1}^{T}P_N B_{N-1}  \\
+   0 & B_{N-1}^{T}P_N A_{N-1} & R_{N-1}+ B_{N-1}^{T}P_N B_{N-1}
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} \\
+  \Delta q_{N-1} 
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+  \nabla_{s_{N-1}} \\ 
+  \nabla_{q_{N-1}} 
+  \end{pmatrix}
+  +
+  \begin{pmatrix}
+  A_{N-1}^{T}P_N & A_{N-1}^{T} \\
+  B_{N-1}^{T}P_N & B_{N-1}^{T}
+  \end{pmatrix}
+  \begin{pmatrix}
+  \nabla_{\lambda_{N}} \\ 
+  \nabla_{s_{N}} 
+  \end{pmatrix}
+  \end{align*}
+  Zuerst wird $ \Delta q_{N-1}$ gelöst
+  \begin{align*}
+  \Delta q_{N-1} =
+  (R_{N-1}+B_{N-1}^{T}P_N B_{N-1})^{-1}
+  (\nabla_{q_{N-1}}+ B_{N-1}^{T}P_N \nabla_{\lambda_{N}} +
+  B_{N-1}^{T}\nabla_{s_{N}} -B_{N-1}^{T}P_N A_{N-1} \Delta s_{N-1})  
+  \end{align*}
+  Für $\Delta \lambda_{N-1}$ und $\Delta s_{N-1}$ ergibt sich dann
+  \begin{align*}
+  -\Delta \lambda_{N-1} + P_{N-1}\Delta s_{N-1} = \nabla_{s_{N-1}}^{*}
+  \end{align*}
+  mit
+  \begin{align*}
+  \begin{array}{rl}
+  P_{N-1} = & Q_{N-1}+A_{N-1}^{T}P_N A_{N-1} -A_{N-1}^{T}P_N B_{N-1}
+  (R_{N-1}+B_{N-1}^{T}P_N B_{N-1})^{-1} B_{N-1}^{T}P_N A_{N-1} \\
+  \nabla_{s_{N-1}}^{*} = & \nabla_{s_{N-1}} + A_{N-1}^{T}P_N \nabla_{\lambda_{N}} + A_{N-1}^{T}\nabla_{s_{N}} \\
+   & - A_{N-1}^{T}P_N B_{N-1}(R_{N-1}+B_{N-1}^{T}P_N B_{N-1})^{-1}(\nabla_{q_{N-1}} +B_{N-1}^{T}P_N \nabla_{\lambda_{N}} +B_{N-1}^{T}\nabla_{s_{N}})
+  \end{array}
+  \end{align*}
+  Damit ergibt sich für das anfängliche System $ J^{k}(y^{k})\Delta y^{k} = -\nabla_{y^{k}} L^{k}(y^{k})$
+  \begin{align*}
+  \begin{pmatrix}
+    & -E &   &   &   &   &   &      \\
+  -E& Q_k & 0  &  A_k^{T} &  &   &    &       \\
+    & 0   & R_k & B_k^{T} &  &   &   &      \\
+    & A_k & B_k &     & \ddots &   &   &    \\
+    &  &  & \ddots & Q_{N-2} & 0 & A_{N-2}^{T}  &     \\
+    &  &  &        &  0      & R_{N-2}  & B_{N-2}^{T}  &     \\
+    &  &  &        & A_{N-2} & B_{N-2}  &     & -E \\
+    &  &  &  &  &  & -E & P_{N-1}
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{k} \\
+  \Delta s_{k} \\
+  \Delta q_{k} \\
+  \vdots \\
+  \Delta \lambda_{N-1} \\
+  \Delta s_{N-1} 
+  \end{pmatrix} =
+  \begin{pmatrix}
+  \nabla_{\lambda_{k}} \\
+  \nabla_{s_{k}} \\ 
+  \nabla_{q_{k}} \\
+  \vdots \\
+  \nabla_{\lambda_{N-1}} \\
+  \nabla_{s_{N-1}}^{*}
+  \end{pmatrix}
+  \end{align*}
+  Die weiteren $P_i $ ergeben sich für $ i = k+1, ..., N-1$
+  \begin{align*}
+  \begin{array}{rl}
+  P_{i-1} = & Q_{i-1}+A_{i-1}^{T}P_i A_{i-1} -A_{i-1}^{T}P_i B_{i-1}
+  (R_{i-1}+B_{i-1}^{T}P_i B_{i-1})^{-1} B_{i-1}^{T}P_i A_{i-1} \\
+  \nabla_{s_{i-1}}^{*} = & \nabla_{s_{i-1}} + A_{i-1}^{T}P_i \nabla_{\lambda_{i}} + A_{i-1}^{T}\nabla_{s_{i}}^{*} \\
+   & - A_{i-1}^{T}P_i B_{i-1}(R_{i-1}+B_{i-1}^{T}P_i B_{i-1})^{-1}(\nabla_{q_{i-1}} +B_{i-1}^{T}P_i \nabla_{\lambda_{i}} +B_{i-1}^{T}\nabla_{s_{i}}^{*})
+  \end{array}
+  \end{align*}
+  Schließlich ergibt sich
+  \begin{align*}
+  \begin{pmatrix}
+  \Delta \lambda_{k} \\
+  \Delta s_{k}
+  \end{pmatrix} =
+  \begin{pmatrix}
+  -P_k & -E \\
+  -E  & 0 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \nabla_{\lambda_{k}} \\
+  \nabla_{s_{k}}^{*}
+  \end{pmatrix}
+  \end{align*} \\
+  \\
+  Bis zum jetzigen Zeitpunkt der Riccati - Rekursion wird $x_k$ das Eingabesignal (bestehend aus aktueller Position, Lage, etc.) nicht benötigt. Ist dies nun bekannt, berechne $\nabla_{\lambda_{k}}=x_k -s_k $ und 
+  \begin{align*}
+  \Delta q_{k} =
+  (R_{k}+B_{k}^{T}P_{k+1} B_{k})^{-1}
+  (\nabla_{q_{k}}+ B_{k}^{T}P_{k+1} \nabla_{\lambda_{k+1}} +
+  B_{k}^{T}\nabla_{s_{k+1}}^{*} -B_{k}^{T}P_{k+1} A_{k} \Delta s_{k})  
+  \end{align*}
+  Sende an die Steuerungseinheiten der Motoren das Signal $u_k = q_k + \Delta q_k $ und  berechne mit der Forward Recursion die restlichen Werte von $\Delta y^{k}$
+  \begin{align*}
+  \begin{pmatrix}
+  \Delta \lambda_{i+1} \\
+  \Delta s_{i+1}
+  \end{pmatrix} =
+  \begin{pmatrix}
+  -P_{i+1} & -E \\
+  -E  & 0 
+  \end{pmatrix}
+  \left[ 
+  \begin{pmatrix}
+  \nabla_{\lambda_{i+1}} \\
+  \nabla_{s_{i+1}}^{*}
+  \end{pmatrix} -
+  \begin{pmatrix}
+  0 & A_i & B_i \\
+  0 & 0 & 0 
+  \end{pmatrix}
+  \begin{pmatrix}
+  \Delta \lambda_{i} \\
+  \Delta s_{i} \\
+  \Delta q_{i}
+  \end{pmatrix} \right] 
+  \end{align*}
+  Abschließend ergibt sich $y^{k+1}$ aus $ y^{k+1} = \prod ^{k+1}(y^{k} + \Delta y^{k})$.\\
+  \\
+  Dieses Verfahren empfiehlt sich nicht wenn $ N $ zu groß ist.\\
+  Eine Alternative wäre, für große $N$, ein fixes $n$ zu wählen und das Verfahren darauf ohne kleiner werdenden Horizont anzuwenden.
+
+\subsection{Implementierung}
+Die Implementierung des Riccatialgorithmus ist in zwei Funktionen unterteilt: Einmal die Funktion ``doStep'', welche rückwärts rekursiv, d.h. $i = N \dotso 1$ $P_{i-1}$ und $\nabla_{s_{i-1}}^{*}$ berechnet. Zum anderen die Funktion ``solveStep'' die vorwärts rekursiv die Werte $\Delta \lambda_k$, $\Delta s_k$, $\Delta q_k$ und $\Delta \mu_k$ berechnet. Wie oben erwähnt, werden bei den implementierten Algorithmus die Nebenbedingungen $\Delta \mu_k$ berücksichtigt. Da die aktiven Ungleichungsnebenbedingungen nur sehr selten auftreten und die Version ohne Constraints deutlich performanter ist wie mit, wurden zwei verschiedene Versionen des Riccatialgorithmus implementiert.\\\\
+Da der Algorthmus sehr rekursiv ist, wurden wiederverwendete Ergebnisse in der Struktur ``riccati\_step\_tmp'' zwischengespeichert, um die Performance zu erhöhen.
+\subsubsection{Test}
+Mit Hilfe der Matlab Funktionen ``generateHesse'' und ``doTestWithHorizon2'' des Matlab Projektes ``rtopt'' in der Klasse ``Lagrange'' und der Funktion ``test\_lagrange'' in ``lagrange.c'' wurden die Ergebnisse der Funktionen ``getLD'' und ``getLDD'' validiert. 
