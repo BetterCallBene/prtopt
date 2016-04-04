@@ -8,8 +8,49 @@
 #include <math.h>
 #include <cost.h>
 #include <multipleshooting.h>
+#include <time.h>
+
+#define NPOS 3
+#define GETPOS(t, vec) (vec + (NPOS * t))
+static realtype start_pos[NPOS] = {2.0, 0.0, 5.0};
 
 
+realtype* skierCamPos_Short5(rqci t, realtype* cam_pos_cur)
+{
+	rqci fileid = 5, k = 0, npos = 0, N = 0;
+	FILE * fcam_pos_file = 0, *fconfig = 0;
+	realtype* pos = 0;
+	char strfcam_pos[256] ="";
+	char strfconfig[256] ="";
+	static rqci bInit = 0;
+	static realtype* skier_cam_pos_vec = 0;
+
+	npos = NPOS;
+
+	if(!bInit)
+	{
+		printf("prtopt: Init skierCamPos_Short5\n");
+		sprintf(strfconfig, "Data/config%ld.dat", fileid);
+		sprintf(strfcam_pos, "Data/campos%ld.dat", fileid);
+    	fcam_pos_file = fopen(strfcam_pos, "r");
+    	fconfig = fopen(strfconfig, "r");
+    	fscanf(fconfig, "%ld", &N);
+    	N *= NPOS;
+    	printf("N: %ld\n", N);
+
+    	skier_cam_pos_vec = load_vec(fcam_pos_file, N);
+    	fclose(fcam_pos_file);
+    	fclose(fconfig);
+    	bInit  = 1;
+	}
+	pos = GETPOS(t, skier_cam_pos_vec);
+
+	for(k = 0; k < npos; k++)
+		cam_pos_cur[k] = pos[k];
+
+
+	return skier_cam_pos_vec;
+}
 
 realtype init_with_steadypoint(rqci indx, void* data)
 {
@@ -22,7 +63,7 @@ realtype init_with_steadypoint(rqci indx, void* data)
 
 	if(!bInit)
 	{
-		steadyPoint = getSteadyPoint();
+		steadyPoint = getSteadyPointDyn(start_pos);
 		bInit = 1;
 	}
 	l = indx % NVAR; 
@@ -47,6 +88,9 @@ realtimesolver* free_rtsolver(realtimesolver* solverRT)
 	rqci nTime = 0, k = 0;
 	
 	nTime = solverRT->ntime;
+
+	for(k = 0; k < nTime; k++)
+		wrp_free(solverRT->res[k]);
 
 	wrp_free(solverRT->res);
 	wrp_free(solverRT->conf);
@@ -85,7 +129,7 @@ realtimesolver* initialize_rtsolver(rqci nhorizon, realtype (*init_state_contr) 
 	solverRT->mesh_h = 1.0;
 	solverRT->nhorizon = nhorizon;
 	solverRT->ntime = nTime;
-	solverRT->res = wrp_malloc(nTime, sizeof(rtsolres));
+	solverRT->res = wrp_malloc(nTime, sizeof(rtsolres*));
 	solverRT->vec  = wrp_calloc(nvec, sizeof(realtype));
 	solverRT->lambda = wrp_calloc(nlambda, sizeof(realtype));
 	solverRT->activeSet = wrp_calloc(nactiveSet, sizeof(rqci));
@@ -95,6 +139,9 @@ realtimesolver* initialize_rtsolver(rqci nhorizon, realtype (*init_state_contr) 
 	vec = solverRT->vec;
 	lambda = solverRT->lambda;
 	mu = solverRT->muSet;
+
+	for(k = 0; k <nTime; k++)
+		solverRT->res[k] = wrp_malloc(1, sizeof(rtsolres));
 
 	for(k = 0; k < nvec; k++)
 		vec[k] = init_state_contr(k, data);
@@ -234,8 +281,8 @@ rqci calculateSolution(rqci t, realtimesolver *rtsol)
 		//cs_print_ext(hDcsc, 0, "hD");
 		//cs_print_ext(ineqhDcsc, 0, "ineqhD");
 	//	printf("t=%ld\n", k);
-		LD = getLD(k, rtsol, h, hDcsc, ineqh, ineqhDcsc);
-		bRes = getLDD(k, rtsol, hDcsc, ineqhD);
+		LD = getLD(k, t, rtsol, h, hDcsc, ineqh, ineqhDcsc);
+		bRes = getLDD(k, t, rtsol, hDcsc, ineqhD);
 
 		if(!LD|| !bRes)
 		{
@@ -380,7 +427,7 @@ void storeFirstIteration(rqci t, realtimesolver *rtsol)
 	
 	riccati* Ric = 0;
 	riccati_step* RicStep =0;
-	rtsolres res;
+	rtsolres* res = 0;
 	
 	realtype *pMinus = 0, *pCur = 0;
 	rqci *piMinus= 0, *piCur = 0;
@@ -399,24 +446,25 @@ void storeFirstIteration(rqci t, realtimesolver *rtsol)
 	pCur   = GETSTATE(k, vec);
 	
 	for(j = 0; j < NSTATE; j++)
-		res.s[j] = pCur[j] + RicStep->delta_s[j];
+		res->s[j] = pCur[j] + RicStep->delta_s[j];
+	
 
 	pCur   = GETCONTR(k, vec);
 	
 	for(j = 0; j < NCONTR; j++)
-		res.q[j] = pCur[j] + RicStep->delta_q[j];
+		res->q[j] = pCur[j] + RicStep->delta_q[j];
 
 	pCur   = GETLAMBDA(k, lambda);
 
 	for(j = 0; j < NLAMBDA; j++)
-		res.lambda[j] = pCur[j] + RicStep->delta_lambda[j];
+		res->lambda[j] = pCur[j] + RicStep->delta_lambda[j];
 
 	delta_mu = assembleMu(k, Ric, active);
 
 	piCur   = GETMU(k, mu);
 	
 	for(j = 0; j < NADDCONSTR; j++)
-		res.mu[j] = piCur[j] + (rqci)delta_mu[j];
+		res->mu[j] = piCur[j] + (rqci)delta_mu[j];
 	delta_mu = wrp_free(delta_mu);
 }
 
@@ -503,28 +551,73 @@ void test_calculation_solution()
  	wrp_free(delta);
  	wrp_free(Test);
 }
-/*
-int main(int argc, char** argv)
-{
-	test_calculation_solution();
-	return 0;
-}
-*/
 
 void saveData(realtimesolver* rtsol)
 {
+	time_t t;
+    struct tm *ts;
+    char str[13]; 
+    char filename[30] ="solfolder/prtopt_%s_%s.dat";
+    char filename_s[FILENAME_MAX] = "";
+    char filename_q[FILENAME_MAX] = "";
+    char filename_lambda[FILENAME_MAX] ="";
+    char filename_mu[FILENAME_MAX] ="";
+
+    rqci nTime, k = 0, l =0;
+    FILE *fstate = 0, *fq=0, *flambda=0, *fmu= 0;
+
+    realtype *s, *q, *lambda, *mu;
+    rtsolres **res = 0, *kres = 0;
+    t = time(NULL);
+    ts = localtime(&t);
+    
+    strftime(str, 13, "%d%m%y%H%M%S", ts);
+
+    sprintf(filename_s, filename, str, "s");
+    sprintf(filename_q, filename, str, "q");
+    sprintf(filename_lambda, filename, str, "lambda");
+    sprintf(filename_mu, filename, str, "mu");
+   
+    fstate = fopen(filename_s, "w");
+    fq = fopen(filename_q, "w");
+    flambda = fopen(filename_lambda, "w");
+    fmu = fopen(filename_lambda, "w");
+
+    nTime = rtsol->ntime;
+
+    res = rtsol->res;
+    printf("prtopt: save data\n");
+
+    for(k = 0; k < nTime; k++)
+    {
+    	kres = res[k];
+    	for(l = 0; l < NSTATE; l++)
+    		fprintf(fstate, "%f\n", kres->s[l]);
+    	for(l = 0; l < NCONTR; l++)
+    		fprintf(fq, "%f\n", kres->q[l]);
+    	for(l = 0; l < NLAMBDA; l++)
+    		fprintf(flambda, "%f\n", kres->lambda[l]);
+    	for(l = 0; l < NADDCONSTR; l++)
+    		fprintf(fmu, "%ld\n", kres->mu[l]);
+    }
+
+    fclose(fmu);
+    fclose(flambda);
+    fclose(fq);
+    fclose(fstate);
 }
 
 #ifdef WITH_MPI
 int rank = 0;
 #endif
+
 int main(int argc, char** argv)
 {
 	rqci nhorizon = 0;
 	realtype costValue = 0;
 	realtype *vec =0;
 	realtimesolver* rtsol = 0;
-	realtype *data = 0;
+	realtype *data = 0, *pos_vec = 0;
 	rqci t, tend =NTIME;
 #ifdef WITH_MPI
 	rqci mesh_h = 0;
@@ -558,6 +651,9 @@ int main(int argc, char** argv)
 	nhorizon = (rqci) (numtasks - 1);
 #endif
 BEGIN_ROOT
+	f_cam_pos = skierCamPos_Short5;
+	pos_vec = f_cam_pos(0, start_pos);// <-start_pos: global variable
+	print_vec(start_pos, NPOS, "prtopt: starting position");
 	printf("MPI: Init successed, nhorizon: %ld\n", nhorizon);
  	rtsol = initialize_rtsolver(nhorizon,
 		init_with_steadypoint, init_lambda_runable, 
@@ -593,9 +689,10 @@ BEGIN_ROOT
  		rtsol->data = wrp_free(rtsol->data);
 END_ROOT
  	}
- 	//saveData(rtsol);
 BEGIN_ROOT
+	saveData(rtsol);
  	rtsol = free_rtsolver(rtsol);
+ 	wrp_free(pos_vec);
 END_ROOT
 
 
@@ -607,7 +704,3 @@ END_ROOT
 #endif
 	return 0;
 }
-
-
-
-

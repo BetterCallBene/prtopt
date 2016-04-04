@@ -15,6 +15,7 @@ QuadConfig* getQuadConfig();
 QuadConfig* getQuadConfigP();
 
 realtype* getSteadyPoint();
+realtype* getSteadyPointDyn(realtype *pos);
 
 rqci numDiff_nD(rqci n, realtype* yold, QuadConfig* quad, void* pdOut, rqci (*func)(realtype*, QuadConfig*, realtype*),realtype (*Jac)(void*,rqci, rqci) );
 /*Section Normen*/

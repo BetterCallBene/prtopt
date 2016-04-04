@@ -25,7 +25,7 @@ cs* getDiag(rqci n, realtype alpha)
 	return A;
 }
 
-realtype* getLD(rqci k, realtimesolver* solverRT, realtype *eq_constr, cs* eqConD, realtype *ineqh, cs* ineqConD)
+realtype* getLD(rqci k, rqci t, realtimesolver* solverRT, realtype *eq_constr, cs* eqConD, realtype *ineqh, cs* ineqConD)
 {
 	rqci kplus = 0, nactivei = 0, nalloc = 0, nhorizon = 0;
 	rqci *activeSet, *muSet;
@@ -57,7 +57,7 @@ realtype* getLD(rqci k, realtimesolver* solverRT, realtype *eq_constr, cs* eqCon
 	
 	LD = wrp_calloc(nalloc, sizeof(realtype));
 	
-	cD = costD(k, y);
+	cD = costD(t, y);
 	u0 = GETCONTR(k, vec);
 	
 //	print_vec(cD, NVAR, "costD");	
@@ -109,7 +109,7 @@ realtype* getLD(rqci k, realtimesolver* solverRT, realtype *eq_constr, cs* eqCon
 	return LD;
 }
 
-rqci getLDD(rqci k, realtimesolver* solverRT, cs* eqConD, cs* ineqConD)
+rqci getLDD(rqci k, rqci t, realtimesolver* solverRT, cs* eqConD, cs* ineqConD)
 {
 	rqci i = 0, n_mu_i =0, nactivei = 0, nz = 0, nstate = 0, ncontr = 0, col =0, row = 0;
 	rqci* activeSet, *muSet;
@@ -160,8 +160,8 @@ rqci getLDD(rqci k, realtimesolver* solverRT, cs* eqConD, cs* ineqConD)
 
 	A = cs_sub(eqConD, zero_ind(1), zero_ind(NSTATE), zero_ind(1), zero_ind(NSTATE), 0);
 	B = cs_sub(eqConD, zero_ind(1), zero_ind(NSTATE), zero_ind(NSTATE+1), zero_ind(NVAR), 0);
-	Q = costDDQ(k, y);
-	R = costDDR(k, y);
+	Q = costDDQ(t, y);
+	R = costDDR(t, y);
 	M = emptyMatrix(NSTATE, NCONTR, 0);
 	D = ineqConDresize;
 	DQalpha = getDiag(NSTATE, alpha);
@@ -446,7 +446,7 @@ void compare(rqci k, rqci nhorizon, realtimesolver* rtsol, cs* Qmat, cs* Mmat, c
 
 void test_lagrange()
 {
-	rqci m =0, k = 0, fileid = 3, bRes = 0, nalloc = 0, nhorizon = 0, nLDi =0, nintervals = 0, nvec = 0, nlambda =0, nactive = 0;
+	rqci t =0, m =0, k = 0, fileid = 3, bRes = 0, nalloc = 0, nhorizon = 0, nLDi =0, nintervals = 0, nvec = 0, nlambda =0, nactive = 0;
 	rqci *active = 0, *mu = 0, n_mu_i =0;
 	cs *Mmat, *Qmat, *Rmat, *Amat, *Bmat, *Dmat; 
 	realtype error = 0, mesh_h = 0;
@@ -529,8 +529,8 @@ void test_lagrange()
 		//cs_print_ext(hDcsc, 0, "hD");
 		//cs_print_ext(ineqhDcsc, 0, "ineqhD");
 		printf("t=%ld\n", k);
-		LD = getLD(k, rtsol, h, hDcsc, ineqh, ineqhDcsc);
-		bRes = getLDD(k, rtsol, hDcsc, ineqhD);
+		LD = getLD(k, t, rtsol, h, hDcsc, ineqh, ineqhDcsc);
+		bRes = getLDD(k, t, rtsol, hDcsc, ineqhD);
 //		print_vec(LD, nalloc, "LD" );
 
 		Mmat =0; Qmat=0; Rmat=0; Amat=0; Bmat=0; Dmat=0;

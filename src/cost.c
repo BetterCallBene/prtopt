@@ -1,3 +1,4 @@
+#include <cost.h>
 #include <sys_base.h>
 #include <rtopt_gen.h>
 #include <quad_types.h>
@@ -5,14 +6,17 @@
 #include <util.h>
 
 //realtype cost(realtype* y, QuadConfig* quad, realtype* campos);
+realtype* (*f_cam_pos) (rqci t, realtype*) =0;
 
-realtype cost(rqci k, realtype* y)
+realtype cost(rqci t, realtype* y)
 {
-	/*ToDo: */
-	realtype campos[3];
-	campos[0] = 2;
-	campos[1] = 0;
-	campos[2] = 5;
+	
+	realtype campos[3] = {2, 0, 5};
+	
+	if(f_cam_pos)
+		f_cam_pos(t, campos);
+	
+
 	return gen_cost(y, campos);
 }
 
@@ -31,19 +35,20 @@ realtype costAll(rqci nhorizon, realtype* vec)
 	return costValue;
 }
 
-realtype* costD(rqci k, realtype* y)
+realtype* costD(rqci t, realtype* y)
 {
 	realtype *ret;
-	realtype campos[3];
-	campos[0] = 2;
-	campos[1] = 0;
-	campos[2] = 5;
+	realtype campos[3] = {2, 0, 5};
+	
+	if(f_cam_pos)
+		f_cam_pos(t, campos);
+
 	ret = wrp_calloc(NVAR, sizeof(realtype));
 	gen_costD(y, campos, ret);
 	return ret;
 }
 
-cs* costDD(rqci k, realtype* y)
+cs* costDD(rqci t, realtype* y)
 {
 	cs* T, *ret;
 	T = cs_spalloc (NVAR, NVAR, NVAR, 1, 1) ;

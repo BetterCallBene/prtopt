@@ -23,7 +23,7 @@ typedef struct realtimesolver_struct
 	rqci* muSet;
 	riccati* Ric;
 	QuadConfig * conf;
-	rtsolres *res;
+	rtsolres **res;
 	rqci ntime;
 	rqci nhorizon;
 	realtype mesh_h;

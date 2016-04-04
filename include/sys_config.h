@@ -1,14 +1,23 @@
 
 #define DENSE
-#define NTIME 30
+#define NTIME 4 * 60
 /* Integrator config */
 /* Problem Constants */
 
-#define ALPHA 2.5
-#define BETA  75.0
+//#define ALPHA 2.5
+//#define BETA  75.0
+//#define GAMMA 1.0
+//#define KAPPA 3.0
+//#define ALPHA_LDD	0.1
+
+//CostsComplet(cBQD, 1, 0.25, 1, 1)
+#define ALPHA 1.0
+#define BETA 0.05
 #define GAMMA 1.0
-#define KAPPA 3.0
-#define ALPHA_LDD	0.01
+#define KAPPA 1.0
+#define ALPHA_LDD	0
+
+
 
 #define TOL_RICCATI 1e-14
 

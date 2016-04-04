@@ -24,8 +24,8 @@ QuadConfig* getQuadConfig()
 		config->Iges[0] = 0.0093886;
 		config->Iges[1] = 0.0093886;
 		config->Iges[2] = 0.018406;
-		config->umin = 0.1;
-		config->umax = 1.0;
+		config->umin = 0.01;
+		config->umax = 10.0;
 		config->u[0] = 0;
 		config->u[1] = 0;
 		config->u[2] = 0;
@@ -84,6 +84,33 @@ realtype* getSteadyPoint()
 
 	steadyPoint[0] = 2;// Noch dynamisch machen
 	steadyPoint[2] = 5;
+
+	for(k = 0; k < NCONTR; k++)
+		steadyPoint[NSTATE+k] = u0;
+	return steadyPoint;
+}
+
+realtype* getSteadyPointDyn(realtype *pos)
+{
+	rqci k =0;
+	realtype m, kT, g, u0;
+	realtype* steadyPoint = NULL;
+
+	QuadConfig* conf = getQuadConfig();
+
+	
+	m = conf->m;
+	kT = conf->kT;
+	g = conf->g;
+
+	u0 = sqrt(1.0/4.0 * m * g * 1.0/kT);
+
+	steadyPoint = wrp_calloc(NVAR, sizeof(realtype));
+	steadyPoint[INDQ] = 1.0;
+
+	steadyPoint[0] = pos[0];// Noch dynamisch machen
+	steadyPoint[1] = pos[1];
+	steadyPoint[2] = pos[2];
 
 	for(k = 0; k < NCONTR; k++)
 		steadyPoint[NSTATE+k] = u0;

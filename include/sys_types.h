@@ -6,7 +6,6 @@
 #include <sys_config.h>
 #endif
 
-#define WITH_MPI
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
